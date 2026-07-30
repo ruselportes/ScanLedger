@@ -31,7 +31,12 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env*
 .env*.local
+
+# Supabase schema (contains DB structure — keep out of repo)
+supabase_schema.sql
 
 # typescript
 *.tsbuildinfo
