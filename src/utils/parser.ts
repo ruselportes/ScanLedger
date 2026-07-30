@@ -35,36 +35,89 @@ export function parseOcrText(rawText: string): ParsedEntry[] {
   });
 }
 
-function parseSingleLine(line: string): ParsedEntry | null {
-  if (!line || line.length < 2) return null;
+/**
+ * Sanitizes potential OCR digit misreadings in amount strings:
+ * e.g., "1O0" -> "100", "P15O" -> "150", "S00" -> "500", "1l0" -> "110"
+ */
+function sanitizeAmountString(rawAmount: string): number | null {
+  if (!rawAmount) return null;
 
-  // Patterns:
-  // "Maria - 120", "Maria-120", "Carl 100", "Anna  80"
-  const patterns = [
-    // Name - Amount (with or without spaces)
-    /^([A-Za-z][A-Za-z\s\.'-]{0,30}?)\s*[-–—]\s*(\d+(?:\.\d{1,2})?)$/,
-    // Name Amount (space separated, number at end)
-    /^([A-Za-z][A-Za-z\s\.'-]{0,30}?)\s+(\d+(?:\.\d{1,2})?)$/,
-  ];
+  let cleaned = rawAmount
+    .replace(/[₱Ppp]/gi, '') // Strip currency symbols (₱, P, p, Php)
+    .replace(/hp/gi, '')
+    .trim();
 
-  for (const pattern of patterns) {
-    const match = line.match(pattern);
-    if (match) {
-      const name = match[1].trim();
-      const amount = parseFloat(match[2]);
-      if (!isNaN(amount) && amount > 0) {
-        return { original_text: line, name, amount };
-      }
+  // Substitute common OCR letter misreadings in numbers:
+  cleaned = cleaned
+    .replace(/[OoQD]/g, '0')
+    .replace(/[Il|!i]/g, '1')
+    .replace(/[Ss]/g, '5')
+    .replace(/[B]/g, '8')
+    .replace(/[Zz]/g, '2');
+
+  const parsed = parseFloat(cleaned);
+  return !isNaN(parsed) && parsed > 0 && parsed < 1000000 ? parsed : null;
+}
+
+function parseSingleLine(rawLine: string): ParsedEntry | null {
+  if (!rawLine || rawLine.length < 2) return null;
+
+  // 1. Strip leading line numbers or bullets like "1.", "1)", "#1", "* "
+  let line = rawLine.replace(/^(?:\d+[\.\)]|#\d+|\*|-)\s*/, '').trim();
+
+  if (line.length < 2) return null;
+
+  // 2. Try matching patterns with flexible separators (=, :, -, —, p, php, space)
+  // Example matches: "Maria = 100", "Maria: 120", "Maria - P150", "John 200", "Anna-80.00"
+  const separatorPattern = /^(.+?)\s*[:=\-–—\s]\s*(?:₱|P|PHP|php)?\s*([0-9OoQDIl|!iSsBZz]+(?:\.[0-9OoQDIl|!iSsBZz]{1,2})?)$/i;
+  const match = line.match(separatorPattern);
+
+  if (match) {
+    const rawName = match[1].replace(/[^A-Za-z\s\.'-]/g, '').trim();
+    const amount = sanitizeAmountString(match[2]);
+
+    if (rawName.length >= 2 && amount !== null) {
+      return {
+        original_text: rawLine,
+        name: capitalizeWords(rawName),
+        amount,
+      };
     }
   }
 
-  // No amount found — name-only entry
-  const nameOnly = /^([A-Za-z][A-Za-z\s\.'-]{0,40})$/.test(line);
-  if (nameOnly) {
-    return { original_text: line, name: line.trim(), amount: null };
+  // 3. Fallback: Search for any trailing number/amount-like token at the end of the line
+  const endNumberMatch = line.match(/^(.+?)\s+(?:₱|P|PHP|php)?\s*([0-9OoQDIl|!iSsBZz]+)$/i);
+  if (endNumberMatch) {
+    const rawName = endNumberMatch[1].replace(/[^A-Za-z\s\.'-]/g, '').trim();
+    const amount = sanitizeAmountString(endNumberMatch[2]);
+    if (rawName.length >= 2 && amount !== null) {
+      return {
+        original_text: rawLine,
+        name: capitalizeWords(rawName),
+        amount,
+      };
+    }
+  }
+
+  // 4. Name-only fallback (no amount detected on line)
+  const cleanNameOnly = line.replace(/[^A-Za-z\s\.'-]/g, '').trim();
+  if (cleanNameOnly.length >= 2 && /^[A-Za-z]/.test(cleanNameOnly)) {
+    return {
+      original_text: rawLine,
+      name: capitalizeWords(cleanNameOnly),
+      amount: null,
+    };
   }
 
   return null;
+}
+
+function capitalizeWords(str: string): string {
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
 }
 
 export function calculateTotal(entries: ParsedEntry[]): number {

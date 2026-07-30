@@ -26,6 +26,7 @@ import { addToQueue, syncQueue } from '../../services/offlineQueue';
 import { StaffStackParamList } from '../../navigation/StaffStack';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { recognizeText } from 'expo-mlkit-ocr';
 
 type RoutePropType = RouteProp<StaffStackParamList, 'Review'>;
@@ -53,7 +54,20 @@ export default function ReviewScreen() {
           return;
         }
 
-        const result = await recognizeText(imageUri);
+        let finalUri = imageUri;
+        try {
+          // Pre-process image: Resize to optimal width (1600px) for ML Kit OCR clarity
+          const manipulated = await ImageManipulator.manipulateAsync(
+            imageUri,
+            [{ resize: { width: 1600 } }],
+            { compress: 0.95, format: ImageManipulator.SaveFormat.JPEG }
+          );
+          finalUri = manipulated.uri;
+        } catch (e) {
+          console.warn('Image manipulation skipped:', e);
+        }
+
+        const result = await recognizeText(finalUri);
         const parsed = parseOcrText(result.text);
         
         setEntries(parsed);
@@ -116,20 +130,46 @@ export default function ReviewScreen() {
     const today = new Date().toISOString().split('T')[0];
     const total = calculateTotal(validEntries);
 
-    const upload = {
+    // Ensure staffId is populated
+    let staffId = profile?.id;
+    if (!staffId) {
+      const { data } = await supabase.auth.getUser();
+      staffId = data.user?.id || '';
+    }
+
+    // Ensure profile row exists in public.profiles to satisfy Foreign Key
+    if (staffId) {
+      const { data: userRes } = await supabase.auth.getUser();
+      if (userRes.user) {
+        await supabase.from('profiles').upsert({
+          id: userRes.user.id,
+          email: userRes.user.email || '',
+          full_name: userRes.user.user_metadata?.full_name || userRes.user.email || 'Staff Member',
+          role: 'staff',
+        }, { onConflict: 'id' });
+      }
+    }
+
+    const baseUpload = {
       id: uploadId,
       date: today,
-      staff_id: profile?.id || '',
+      staff_id: staffId,
       total_entries: validEntries.length,
       total_amount: total,
-      is_synced: false,
       created_at: new Date().toISOString(),
     };
 
     const netState = await NetInfo.fetch();
+    let savedOnline = false;
+
     if (netState.isConnected) {
       try {
-        const { error: uploadError } = await supabase.from('logbook_uploads').insert(upload);
+        const { error: uploadError } = await supabase.from('logbook_uploads').insert({
+          ...baseUpload,
+          is_synced: true,
+          synced_at: new Date().toISOString(),
+        });
+
         if (!uploadError) {
           const rows = validEntries.map((e) => ({
             upload_id: uploadId,
@@ -140,19 +180,22 @@ export default function ReviewScreen() {
             is_duplicate: e.is_duplicate || false,
           }));
           await supabase.from('logbook_entries').insert(rows);
+          savedOnline = true;
         } else {
-          await addToQueue(upload, validEntries);
+          console.warn('Supabase upload error, queuing offline:', uploadError);
         }
-      } catch {
-        await addToQueue(upload, validEntries);
+      } catch (err) {
+        console.warn('Network upload failed, queuing offline:', err);
       }
-    } else {
-      await addToQueue(upload, validEntries);
+    }
+
+    if (!savedOnline) {
+      const offlineUpload = { ...baseUpload, is_synced: false };
+      await addToQueue(offlineUpload, validEntries);
     }
 
     setSaving(false);
     navigation.navigate('UploadSuccess', { total, entryCount: validEntries.length });
-    // Try to sync any queued items
     syncQueue().catch(() => {});
   };
 

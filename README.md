@@ -1,117 +1,77 @@
 <div align="center">
 
-<img src="assets/icon.png" alt="ScanLedger Logo" width="120" />
+# 📖 ScanLedger
 
-# ScanLedger
+**Gym Revenue Logbook Digitizer & Handwriting OCR**
 
-**Gym Revenue Logbook Digitizer**
+*Capture · Extract · Confirm · Analyze*
 
-*Capture · Extract · Confirm · Report*
-
-[![React Native](https://img.shields.io/badge/React%20Native-Expo-000020?style=for-the-badge&logo=expo)](https://expo.dev)
+[![React Native](https://img.shields.io/badge/React%20Native-Expo%2056-000020?style=for-the-badge&logo=expo)](https://expo.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
 [![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
+[![Google ML Kit](https://img.shields.io/badge/OCR-Google%20ML%20Kit-4285F4?style=for-the-badge&logo=google)](https://developers.google.com/ml-kit)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 </div>
 
 ---
 
-## Overview
+## 🌟 Overview
 
-ScanLedger is a mobile application designed for gyms that still use handwritten logbooks to record daily attendance and payments. Instead of replacing the existing workflow, it **digitizes revenue records at the end of each day** by photographing the logbook page, extracting payment amounts, and syncing confirmed data to the cloud.
+**ScanLedger** is an intelligent mobile application built for gyms and fitness centers that rely on paper logbooks for attendance and payment logging. Instead of forcing staff to adopt complicated new software, ScanLedger **digitizes paper logbooks in seconds**.
 
-No QR codes. No RFID. No changes to how your gym operates — just smarter bookkeeping.
+Staff simply take a picture of the daily logbook page. The app uses **Google ML Kit OCR** combined with specialized **handwriting parsing heuristics** to extract names and payment amounts, calculate total daily revenue, and sync data securely to Supabase.
 
 ---
 
-## The Problem
-
-Many small gyms use handwritten logbooks like this:
+## 🔍 How It Works
 
 ```
-John
-Maria - 120
-Peter
-Carl 100
-Anna - 80
+[ Paper Logbook ] ──> ( 📷 Camera Viewfinder ) ──> ( 🧠 Google ML Kit OCR + Heuristics )
+                                                               │
+                                                               ▼
+[ 👑 Admin Dashboard ] <── ( ☁️ Supabase Cloud ) <── [ ✏️ Staff Review & Confirm ]
 ```
 
-At the end of every day, staff manually:
-- Count payment entries
-- Add up the totals
-- Record the day's earnings
-- Prepare a report for the owner
-
-This is slow, error-prone, and impossible to audit remotely.
+### OCR Heuristics & Cleaning
+Handwritten logbooks are naturally messy. ScanLedger cleans character ambiguity automatically:
+- **Digit Substitutions**: `O`/`o`/`Q`/`D` $\rightarrow$ `0`, `I`/`l`/`|`/`!` $\rightarrow$ `1`, `S`/`s` $\rightarrow$ `5`, `B` $\rightarrow$ `8`, `Z`/`z` $\rightarrow$ `2`.
+- **Flexible Currency Parsing**: Recognizes `₱`, `P`, `Php`, `=`, `:`, `-`, `—`, and spaces.
+- **Image Pre-processing**: Uses `expo-image-manipulator` to scale captured photos to an optimal **1600px width** at 95% JPEG quality before running text detection.
 
 ---
 
-## The Solution
+## ✨ Features
 
-ScanLedger turns that logbook page into structured digital data in seconds:
+### 📷 Staff Experience
+- **Guided Viewfinder Frame**: Visual overlay to align logbook pages easily.
+- **On-Device Handwriting OCR**: Powered by Google ML Kit for offline-capable text recognition.
+- **Interactive Review Screen**: Edit amounts, add missing entries, or delete noise lines.
+- **Duplicate Detection**: Flags repeated names or payment entries.
+- **1-Tap Role Switcher**: Tap `👑 Admin View` in the History header to preview the Owner Dashboard anytime!
+- **Robust Offline Queue**: Automatically saves scans locally when offline and syncs with 1 pull-to-refresh.
 
-| Name  | Amount |
-|-------|-------:|
-| John  | —      |
-| Maria | ₱120   |
-| Peter | —      |
-| Carl  | ₱100   |
-| Anna  | ₱80    |
-
-**Daily Revenue: ₱300**
-
----
-
-## Features
-
-### Staff
-- 📷 **Capture** — Camera with guided viewfinder frame
-- 🔍 **Extract** — On-device OCR parses names and payment amounts
-- ✏️ **Review** — Edit any mis-detected entry before saving
-- ⚠️ **Duplicate Detection** — Flags suspicious repeated entries
-- ✅ **Confirm & Save** — Uploads to Supabase with haptic feedback
-- 📶 **Offline Mode** — Queues data locally and syncs automatically when back online
-
-### Owner
-- 📊 **Dashboard** — Daily, Weekly, Monthly, and Yearly revenue at a glance
-- 📈 **Revenue Chart** — 7-day trend line chart
-- 📚 **History** — Browse all processed logbooks with staff attribution
-- 👥 **Staff Management** — View and manage authorized staff accounts
-- ⚙️ **Settings** — Account, device management, and export options
+### 📊 Owner / Admin Experience
+- **Revenue Analytics**: Daily, Weekly, Monthly, and Yearly totals at a glance.
+- **7-Day Revenue Trend Line**: Interactive visual chart powered by `react-native-chart-kit`.
+- **Upload Audit History**: Detailed log of all processed logbooks with staff attribution and timestamps.
+- **Staff Management**: View and audit authorized staff accounts.
+- **Dark Mode Aesthetic**: Material Design 3 inspired sleek dark aesthetic with neon green accents (`#00E5A0`).
 
 ---
 
-## Screenshots
-
-> *(Coming soon — run the app on a device to see it in action)*
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Mobile Framework | [React Native](https://reactnative.dev) via [Expo](https://expo.dev) |
-| Language | TypeScript |
-| Backend | [Supabase](https://supabase.com) (Auth, PostgreSQL, Storage) |
-| Navigation | [React Navigation 6](https://reactnavigation.org) |
-| Charts | [react-native-chart-kit](https://github.com/indiespirit/react-native-chart-kit) |
-| Offline Storage | [@react-native-async-storage/async-storage](https://github.com/react-native-async-storage/async-storage) |
-| Camera | [expo-camera](https://docs.expo.dev/versions/latest/sdk/camera/) |
-| Animations | [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/) |
-
----
-
-## Getting Started
+## 🚀 Setup & Installation Guide
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org) v18+
-- [Expo Go](https://expo.dev/go) app on your phone, OR an Android/iOS emulator
-- A [Supabase](https://supabase.com) account (free tier works)
+1. **Node.js**: v18.x or higher
+2. **Android Studio**: Installed with Android SDK (Compile SDK 36, NDK `26.1.10909125`)
+3. **Physical Android Device or Emulator**: Android 7.0 (API 24) or higher
+4. **Supabase Project**: Free tier account at [supabase.com](https://supabase.com)
 
-### 1. Clone the Repository
+---
+
+### Step 1: Clone & Install Dependencies
 
 ```bash
 git clone https://github.com/ruselportes/ScanLedger.git
@@ -119,92 +79,101 @@ cd ScanLedger
 npm install
 ```
 
-### 2. Set Up Supabase
+---
 
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Go to **SQL Editor** and run the schema file:
+### Step 2: Configure Supabase Database
 
-   > The schema file is **not included in this repo** for security. Contact the project maintainer for the `supabase_schema.sql` file, or refer to the [Database Schema](#database-schema) section below to recreate it.
+1. Open your **Supabase Dashboard** $\rightarrow$ **SQL Editor**.
+2. Run the full database schema script located in [`supabase_schema.sql`](./supabase_schema.sql).
+3. Copy your project credentials from **Project Settings $\rightarrow$ API**.
 
-3. Go to **Project Settings → API** and copy your:
-   - Project URL
-   - `anon` / public key
+---
 
-### 3. Configure Environment Variables
+### Step 3: Configure Environment Variables
 
 Create a `.env` file in the project root:
 
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
 ```
 
-> ⚠️ **Never commit `.env` to version control.** It is already excluded via `.gitignore`.
+---
 
-### 4. Create User Accounts
+### Step 4: Native Android Build & Device Deployment
 
-In Supabase → **Authentication → Users**, create:
-1. An owner account (e.g., `owner@yourgym.com`)
-2. One or more staff accounts
-
-Then in the **SQL Editor**, set the owner's role:
-
-```sql
-UPDATE public.profiles SET role = 'owner' WHERE email = 'owner@yourgym.com';
-```
-
-### 5. Run the App
+Since ScanLedger utilizes **Google ML Kit native C++ libraries**, run a native Android development build:
 
 ```bash
-npx expo start
+# Connect your physical Android phone via USB or Wireless ADB
+adb devices
+
+# Enable port forwarding for Metro Bundler
+adb reverse tcp:8081 tcp:8081
+
+# Compile native Android APK & launch dev server
+npx expo run:android
 ```
 
-Scan the QR code with **Expo Go**, or press `a` for Android / `i` for iOS emulator.
+> 💡 **Wireless ADB Connection**:
+> If connecting via Wireless ADB:
+> ```bash
+> adb connect <PHONE_IP>:<PORT>
+> adb -s <PHONE_IP>:<PORT> reverse tcp:8081 tcp:8081
+> ```
 
 ---
 
-## Database Schema
+### Step 5: Assign Owner / Admin Role
 
-The application uses the following tables in Supabase (PostgreSQL):
+To access the **Owner Dashboard**, run this SQL in your Supabase SQL Editor for your registered account:
 
-```
-profiles          → User accounts with role (staff | owner)
-logbook_uploads   → Each logbook scan session
-logbook_entries   → Individual name/amount rows within a scan
-devices           → Registered device records
+```sql
+UPDATE public.profiles SET role = 'owner' WHERE email = 'your_email@domain.com';
 ```
 
-Row Level Security (RLS) is enforced on all tables:
-- Staff can only insert and view their own uploads
-- Owners have read access to all records
-- No public access to any table
+*(Or simply tap the **👑 Admin View** button in the app's History tab header!)*
 
 ---
 
-## Project Structure
+## 🗄️ Database Architecture
+
+The schema defined in [`supabase_schema.sql`](./supabase_schema.sql) includes:
+
+- `public.profiles`: Extends Supabase `auth.users` with roles (`staff` | `owner`) and display names.
+- `public.logbook_uploads`: Log of each scanned page (date, total amount, entry count, sync status).
+- `public.logbook_entries`: Individual member payment items extracted per scan session.
+- `public.devices`: Authorized device registry.
+
+Row-Level Security (RLS) policies enforce authenticated staff uploads and owner-wide read permissions.
+
+---
+
+## 📁 Project Structure
 
 ```
 ScanLedger/
-├── App.tsx                          # Root entry point
-├── babel.config.js                  # Reanimated plugin config
-├── app.json                         # Expo config + permissions
+├── App.tsx                          # App root & provider wrap
+├── app.json                         # Expo configuration & plugins
+├── supabase_schema.sql              # Database schema & RLS policies
+├── .env                             # Environment variables
 │
 └── src/
-    ├── theme/index.ts               # Design system (colors, spacing, fonts)
-    ├── types/index.ts               # TypeScript interfaces
+    ├── theme/index.ts               # Colors, Spacing & Typography tokens
+    ├── types/index.ts               # TypeScript data interfaces
     ├── context/
-    │   └── AuthContext.tsx          # Session persistence + role loading
+    │   └── AuthContext.tsx          # Session persistence & role switcher
     ├── services/
-    │   ├── supabase.ts              # Supabase client
-    │   ├── dataService.ts           # Revenue queries
-    │   └── offlineQueue.ts          # Offline sync queue
+    │   ├── supabase.ts              # Supabase client initialization
+    │   ├── dataService.ts           # Revenue analytics & query handlers
+    │   └── offlineQueue.ts          # Offline storage & background sync engine
     ├── utils/
-    │   └── parser.ts                # OCR text parser + duplicate detection
+    │   └── parser.ts                # OCR text parsing & digit substitute heuristics
     ├── navigation/
-    │   ├── RootNavigator.tsx        # Role-based routing
-    │   ├── StaffStack.tsx           # Camera → Review → Success
-    │   ├── StaffTabs.tsx            # Staff bottom tabs
-    │   └── OwnerTabs.tsx            # Owner bottom tabs
+    │   ├── RootNavigator.tsx        # Role-based container
+    │   ├── StaffStack.tsx           # Camera → Review → Success stack
+    │   ├── StaffTabs.tsx            # Staff tab navigator
+    │   └── OwnerTabs.tsx            # Admin/Owner tab navigator
     └── screens/
         ├── auth/LoginScreen.tsx
         ├── staff/CameraScreen.tsx
@@ -219,59 +188,22 @@ ScanLedger/
 
 ---
 
-## User Roles
+## 🛠️ Native Build Configurations Discovered
 
-| Feature | Staff | Owner |
-|---|:---:|:---:|
-| Capture logbook page | ✅ | — |
-| Review & edit entries | ✅ | — |
-| View today's uploads | ✅ | — |
-| View revenue dashboard | — | ✅ |
-| View full history | — | ✅ |
-| Manage staff accounts | — | ✅ |
-| Export reports | — | ✅ |
+For native compilation with Expo 56 and React Native 0.85:
+- **NDK Version**: Set `ndkVersion = "26.1.10909125"` in `android/build.gradle` and `app.json`.
+- **Min SDK**: Hardcoded `minSdkVersion = 24` across all native module builds (`react-native-worklets`, `react-native-screens`).
+- **C++ Standards**: Enabled `-fexperimental-library` in CMake for LLVM Clang C++20 compatibility.
 
 ---
 
-## Authentication
+## 📄 License
 
-ScanLedger uses a **one-time login** model. Once a staff member or owner signs in on a device, their session is securely persisted. They will not be asked to log in again unless they explicitly sign out or change devices.
-
----
-
-## Offline Support
-
-The app works without an internet connection. When a scan is confirmed offline, it is saved to a local queue on the device. The queue automatically syncs to Supabase the next time the device is online.
-
----
-
-## Roadmap
-
-- [ ] Real on-device handwriting OCR via ML Kit
-- [ ] Image perspective correction & straightening
-- [ ] PDF and CSV report export
-- [ ] Push notifications for sync events
-- [ ] Multi-branch / multi-gym support
-- [ ] Advanced revenue analytics
-
----
-
-## Contributing
-
-This is a private project for gym revenue digitization. For questions or feature requests, contact the maintainer.
-
----
-
-## License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
----
+Distributed under the MIT License. See [`LICENSE`](./LICENSE) for details.
 
 <div align="center">
 
-Built with ❤️ by [Rusel Portes](https://github.com/ruselportes)
-
+*Designed & Developed by [Rusel Portes](https://github.com/ruselportes)*  
 *ScanLedger v1.0.0 · July 2026*
 
 </div>

@@ -12,7 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../theme';
 
 export default function OwnerSettingsScreen() {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, switchRole } = useAuth();
 
   const handleSignOut = () => {
     Alert.alert(
@@ -85,8 +85,9 @@ export default function OwnerSettingsScreen() {
 
         {/* Danger Zone */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Session</Text>
+          <Text style={styles.sectionTitle}>Session & Mode</Text>
           <View style={styles.sectionCard}>
+            <MenuItem icon="📸" label="Switch to Staff Mode" sub="Return to camera scanner view" onPress={() => switchRole('staff')} />
             <MenuItem icon="🚪" label="Sign Out" danger onPress={handleSignOut} />
           </View>
         </View>

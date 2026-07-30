@@ -14,6 +14,7 @@
     "@types/uuid": "^10.0.0",
     "expo": "~56.0.0",
     "expo-blur": "~56.0.4",
+    "expo-build-properties": "~56.0.24",
     "expo-camera": "~56.0.8",
     "expo-file-system": "~56.0.8",
     "expo-font": "~56.0.7",

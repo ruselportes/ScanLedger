@@ -4,6 +4,7 @@ import { ParsedEntry } from '../types';
 import CameraScreen from '../screens/staff/CameraScreen';
 import ReviewScreen from '../screens/staff/ReviewScreen';
 import UploadSuccessScreen from '../screens/staff/UploadSuccessScreen';
+import StaffHistoryScreen from '../screens/staff/StaffHistoryScreen';
 
 export type StaffStackParamList = {
   Camera: undefined;
@@ -20,6 +21,7 @@ export default function StaffStack() {
       <Stack.Screen name="Camera" component={CameraScreen} />
       <Stack.Screen name="Review" component={ReviewScreen} />
       <Stack.Screen name="UploadSuccess" component={UploadSuccessScreen} />
+      <Stack.Screen name="History" component={StaffHistoryScreen} />
     </Stack.Navigator>
   );
 }

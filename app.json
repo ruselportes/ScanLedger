@@ -48,7 +48,16 @@
         }
       ],
       "expo-status-bar",
-      "expo-mlkit-ocr"
+      "expo-mlkit-ocr",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24,
+            "ndkVersion": "26.1.10909125"
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {

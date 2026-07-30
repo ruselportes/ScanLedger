@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  switchRole: (newRole: 'staff' | 'owner') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => ({ error: null }),
   signOut: async () => {},
   refreshProfile: async () => {},
+  switchRole: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -28,7 +30,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async (userId: string) => {
-    const p = await fetchProfile(userId);
+    let p = await fetchProfile(userId);
+    if (!p) {
+      const { data: userRes } = await supabase.auth.getUser();
+      const user = userRes?.user;
+      if (user) {
+        const newProf = {
+          id: user.id,
+          email: user.email || '',
+          full_name: user.user_metadata?.full_name || user.email || 'Staff Member',
+          role: 'staff',
+        };
+        await supabase.from('profiles').upsert(newProf, { onConflict: 'id' });
+        p = { ...newProf, created_at: new Date().toISOString() };
+      }
+    }
     setProfile(p);
   }, []);
 
@@ -72,8 +88,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (session?.user) await loadProfile(session.user.id);
   };
 
+  const switchRole = async (newRole: 'staff' | 'owner') => {
+    if (session?.user) {
+      await supabase.from('profiles').update({ role: newRole }).eq('id', session.user.id);
+      await loadProfile(session.user.id);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ session, profile, loading, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, profile, loading, signIn, signOut, refreshProfile, switchRole }}>
       {children}
     </AuthContext.Provider>
   );

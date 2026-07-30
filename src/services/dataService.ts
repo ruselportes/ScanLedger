@@ -93,16 +93,18 @@ export async function fetchUploadHistory(limit = 20): Promise<LogbookUpload[]> {
 }
 
 export async function fetchTodayUploads(staffId: string): Promise<LogbookUpload[]> {
-  const today = new Date().toISOString().split('T')[0];
   const { data, error } = await supabase
     .from('logbook_uploads')
     .select('*')
     .eq('staff_id', staffId)
-    .eq('date', today)
     .order('created_at', { ascending: false });
 
   if (error || !data) return [];
-  return data;
+  // Any record fetched directly from Supabase is remote & synced!
+  return data.map((row) => ({
+    ...row,
+    is_synced: true,
+  }));
 }
 
 // ─── Staff Management ─────────────────────────────────────────────────────────

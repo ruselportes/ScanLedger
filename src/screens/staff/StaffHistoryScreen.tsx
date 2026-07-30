@@ -6,24 +6,48 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../services/supabase';
 import { fetchTodayUploads } from '../../services/dataService';
+import { getQueue, syncQueue } from '../../services/offlineQueue';
 import { LogbookUpload } from '../../types';
 import { formatCurrency, formatDate } from '../../utils/parser';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../theme';
 
 export default function StaffHistoryScreen() {
-  const { profile } = useAuth();
+  const { profile, signOut, switchRole } = useAuth();
   const [uploads, setUploads] = useState<LogbookUpload[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    if (!profile?.id) return;
-    const data = await fetchTodayUploads(profile.id);
-    setUploads(data);
+    let staffId = profile?.id;
+    if (!staffId) {
+      const { data } = await supabase.auth.getUser();
+      staffId = data.user?.id;
+    }
+
+    // 1. Try syncing any offline queued items
+    await syncQueue().catch((err) => console.warn('syncQueue error:', err));
+
+    // 2. Fetch today's remote uploads
+    const remoteData = staffId ? await fetchTodayUploads(staffId) : [];
+
+    // 3. Get local pending queue
+    const queue = await getQueue();
+    const pendingUploads: LogbookUpload[] = queue.map((q) => q.upload);
+
+    // 4. Combine pending + remote (deduplicated)
+    const combined = [
+      ...pendingUploads,
+      ...remoteData.filter((r) => !pendingUploads.some((p) => p.id === r.id)),
+    ];
+
+    setUploads(combined);
     setLoading(false);
   }, [profile]);
 
@@ -31,8 +55,15 @@ export default function StaffHistoryScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    const res = await syncQueue().catch(() => ({ synced: 0, failed: 0 }));
     await load();
     setRefreshing(false);
+
+    if (res.synced > 0) {
+      Alert.alert('Sync Successful', `Successfully synced ${res.synced} pending logbook upload(s) to the cloud!`);
+    } else if (res.failed > 0) {
+      Alert.alert('Sync Warning', `Failed to sync ${res.failed} item(s). Please check your internet connection.`);
+    }
   };
 
   const renderItem = ({ item }: { item: LogbookUpload }) => (
@@ -60,8 +91,23 @@ export default function StaffHistoryScreen() {
   return (
     <LinearGradient colors={['#0A0E1A', '#111827']} style={{ flex: 1 }}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Today's Uploads</Text>
-        <Text style={styles.headerSub}>Your processed logbooks</Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.headerTitle}>Today's Uploads</Text>
+            <Text style={styles.headerSub}>Your processed logbooks</Text>
+          </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.roleSwitchBtn}
+              onPress={() => switchRole('owner')}
+            >
+              <Text style={styles.roleSwitchText}>👑 Admin View</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
+              <Text style={styles.signOutText}>Sign Out</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       {loading ? (
@@ -96,6 +142,26 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerActions: { flexDirection: 'row', gap: Spacing.xs, alignItems: 'center' },
+  roleSwitchBtn: {
+    backgroundColor: 'rgba(0,229,160,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,229,160,0.4)',
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+  },
+  roleSwitchText: { fontSize: FontSize.xs, color: Colors.primary, fontWeight: '700' },
+  signOutBtn: {
+    backgroundColor: 'rgba(248,113,113,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(248,113,113,0.3)',
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+  },
+  signOutText: { fontSize: FontSize.xs, color: Colors.danger, fontWeight: '600' },
   headerTitle: { fontSize: FontSize.xxl, fontWeight: '800', color: Colors.textPrimary },
   headerSub: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 4 },
   list: { padding: Spacing.lg, gap: Spacing.md },
