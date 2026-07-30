@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: user.id,
           email: user.email || '',
           full_name: user.user_metadata?.full_name || user.email || 'Staff Member',
-          role: 'staff',
+          role: 'staff' as const,
         };
         await supabase.from('profiles').upsert(newProf, { onConflict: 'id' });
         p = { ...newProf, created_at: new Date().toISOString() };

@@ -44,12 +44,16 @@ export async function syncQueue(): Promise<{ synced: number; failed: number }> {
 
   if (currentUser) {
     // Ensure profile exists in DB
-    await supabase.from('profiles').upsert({
-      id: currentUser.id,
-      email: currentUser.email || '',
-      full_name: currentUser.user_metadata?.full_name || currentUser.email || 'Staff Member',
-      role: 'staff',
-    }, { onConflict: 'id' }).catch((e) => console.warn('Profile upsert warning in syncQueue:', e));
+    try {
+      await supabase.from('profiles').upsert({
+        id: currentUser.id,
+        email: currentUser.email || '',
+        full_name: currentUser.user_metadata?.full_name || currentUser.email || 'Staff Member',
+        role: 'staff',
+      }, { onConflict: 'id' });
+    } catch (err) {
+      console.warn('Profile upsert warning in syncQueue:', err);
+    }
   }
 
   for (const item of queue) {
