@@ -75,7 +75,9 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing={facing}>
+      <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
+      
+      <View style={styles.overlayWrapper} pointerEvents="box-none">
         {/* Header */}
         <LinearGradient
           colors={['rgba(10,14,26,0.9)', 'transparent']}
@@ -121,7 +123,7 @@ export default function CameraScreen() {
             <View style={{ width: 56 }} />
           </View>
         </LinearGradient>
-      </CameraView>
+      </View>
     </View>
   );
 }
@@ -130,8 +132,17 @@ const CORNER_SIZE = 24;
 const CORNER_THICKNESS = 3;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: '#000', position: 'relative' },
   camera: { flex: 1 },
+  overlayWrapper: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flex: 1,
+    flexDirection: 'column',
+  },
   topOverlay: {
     paddingTop: 60,
     paddingBottom: Spacing.lg,

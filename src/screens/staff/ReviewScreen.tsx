@@ -26,6 +26,7 @@ import { addToQueue, syncQueue } from '../../services/offlineQueue';
 import { StaffStackParamList } from '../../navigation/StaffStack';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
+import { recognizeText } from 'expo-mlkit-ocr';
 
 type RoutePropType = RouteProp<StaffStackParamList, 'Review'>;
 type NavProp = NativeStackNavigationProp<StaffStackParamList, 'Review'>;
@@ -41,32 +42,30 @@ export default function ReviewScreen() {
   const [saving, setSaving] = useState(false);
   const [processingError, setProcessingError] = useState<string | null>(null);
 
-  // Simulate OCR processing (in a real implementation, use ML Kit)
+  // Process OCR
   useEffect(() => {
-    const simulateOcr = async () => {
+    const processOcr = async () => {
       setProcessing(true);
       setProcessingError(null);
       try {
-        // In production: send imageUri to an on-device OCR module
-        // For now, simulate with sample data after a brief "processing" delay
-        await new Promise((r) => setTimeout(r, 1800));
-        const sampleText = route.params.parsedEntries?.length
-          ? '' // will use passed entries
-          : `John\nMaria - 120\nPeter\nCarl 100\nAnna - 80`;
+        if (route.params.parsedEntries?.length) {
+          setEntries(route.params.parsedEntries);
+          return;
+        }
 
-        const parsed = route.params.parsedEntries?.length
-          ? route.params.parsedEntries
-          : parseOcrText(sampleText);
-
+        const result = await recognizeText(imageUri);
+        const parsed = parseOcrText(result.text);
+        
         setEntries(parsed);
-      } catch {
+      } catch (err) {
+        console.error('OCR Error:', err);
         setProcessingError('Failed to process image. Please try again.');
       } finally {
         setProcessing(false);
       }
     };
-    simulateOcr();
-  }, []);
+    processOcr();
+  }, [imageUri]);
 
   const updateEntry = useCallback((index: number, field: keyof ParsedEntry, value: string) => {
     setEntries((prev) => {

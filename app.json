@@ -46,7 +46,9 @@
         {
           "cameraPermission": "ScanLedger needs camera access to capture logbook pages."
         }
-      ]
+      ],
+      "expo-status-bar",
+      "expo-mlkit-ocr"
     ],
     "extra": {
       "eas": {
