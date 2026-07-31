@@ -48,7 +48,6 @@ Handwritten logbooks are naturally messy. ScanLedger cleans character ambiguity 
 - **On-Device Handwriting OCR**: Powered by Google ML Kit for offline-capable text recognition.
 - **Interactive Review Screen**: Edit amounts, add missing entries, or delete noise lines.
 - **Duplicate Detection**: Flags repeated names or payment entries.
-- **1-Tap Role Switcher**: Tap `👑 Admin View` in the History header to preview the Owner Dashboard anytime!
 - **Robust Offline Queue**: Automatically saves scans locally when offline and syncs with 1 pull-to-refresh.
 
 ### 📊 Owner / Admin Experience
@@ -132,7 +131,54 @@ To access the **Owner Dashboard**, run this SQL in your Supabase SQL Editor for 
 UPDATE public.profiles SET role = 'owner' WHERE email = 'your_email@domain.com';
 ```
 
-*(Or simply tap the **👑 Admin View** button in the app's History tab header!)*
+---
+
+## 🏭 Production Build & Deployment Guide
+
+ScanLedger can be compiled into a standalone production APK or Android App Bundle (AAB).
+
+### Option A: Build Standalone Release APK (Direct Device Installation)
+
+Compile a self-contained release APK to install directly on staff & owner devices:
+
+```bash
+# Navigate to android directory
+cd android
+
+# Compile standalone release APK
+./gradlew assembleRelease -x lint -x test
+```
+
+> 📦 **Output APK Path**:
+> `android/app/build/outputs/apk/release/app-release.apk`
+
+---
+
+### Option B: Build Production App Bundle (Google Play Store)
+
+Compile an Android App Bundle (`.aab`) for publishing to the Google Play Console:
+
+```bash
+cd android
+./gradlew bundleRelease -x lint -x test
+```
+
+> 📦 **Output AAB Path**:
+> `android/app/build/outputs/bundle/release/app-release.aab`
+
+---
+
+### Option C: EAS Production Build (Expo Application Services)
+
+If using EAS Cloud Build:
+
+```bash
+# Install EAS CLI
+npm install -g eas-cli
+
+# Run production build
+eas build -p android --profile production
+```
 
 ---
 
