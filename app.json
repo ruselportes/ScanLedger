@@ -31,7 +31,8 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -62,8 +63,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "your-eas-project-id"
+        "projectId": "af0da42f-7197-4215-929b-27ec58021e21"
       }
-    }
+    },
+    "owner": "ruselportes"
   }
 }
