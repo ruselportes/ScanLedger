@@ -107,17 +107,23 @@ export default function DashboardScreen() {
                     labels: chartLabels,
                     datasets: [{ data: chartData, color: () => '#00E5A0', strokeWidth: 2.5 }],
                   }}
-                  width={SCREEN_WIDTH - Spacing.lg * 2}
+                  width={SCREEN_WIDTH - Spacing.lg * 2 - Spacing.md * 2}
                   height={200}
+                  formatYLabel={(val) => {
+                    const num = parseFloat(val);
+                    if (isNaN(num)) return val;
+                    return num >= 1000 ? `${(num / 1000).toFixed(0)}k` : `${num}`;
+                  }}
                   chartConfig={{
                     backgroundColor: Colors.bgCard,
                     backgroundGradientFrom: Colors.bgCard,
                     backgroundGradientTo: Colors.bgElevated,
                     decimalPlaces: 0,
                     color: (opacity = 1) => `rgba(0,229,160,${opacity})`,
-                    labelColor: () => Colors.textMuted,
-                    propsForDots: { r: '5', strokeWidth: '2', stroke: '#00E5A0' },
-                    propsForBackgroundLines: { stroke: Colors.border, strokeWidth: 1 },
+                    labelColor: (opacity = 1) => `rgba(241, 245, 249, ${opacity})`,
+                    propsForLabels: { fontSize: 11, fontWeight: '700' },
+                    propsForDots: { r: '4', strokeWidth: '2', stroke: '#00E5A0' },
+                    propsForBackgroundLines: { stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 },
                   }}
                   bezier
                   style={styles.chart}
@@ -213,7 +219,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   sectionTitle: { fontSize: FontSize.md, fontWeight: '700', color: Colors.textPrimary, marginBottom: Spacing.md },
-  chart: { borderRadius: BorderRadius.md },
+  chart: {
+    borderRadius: BorderRadius.md,
+    paddingRight: 32,
+    marginLeft: -10,
+  },
   todaySummary: {
     marginHorizontal: Spacing.lg,
     backgroundColor: Colors.bgCard,

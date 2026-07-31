@@ -57,7 +57,8 @@
             "ndkVersion": "26.1.10909125"
           }
         }
-      ]
+      ],
+      "expo-splash-screen"
     ],
     "extra": {
       "eas": {

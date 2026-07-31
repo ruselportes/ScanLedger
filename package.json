@@ -24,6 +24,7 @@
     "expo-linear-gradient": "~56.0.4",
     "expo-mlkit-ocr": "^0.2.7",
     "expo-secure-store": "~56.0.4",
+    "expo-splash-screen": "~56.0.14",
     "expo-status-bar": "~56.0.4",
     "react": "19.2.3",
     "react-native": "0.85.3",

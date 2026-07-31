@@ -107,6 +107,40 @@ export async function fetchTodayUploads(staffId: string): Promise<LogbookUpload[
   }));
 }
 
+/**
+ * Paginated all-time uploads for a given staff member.
+ * Pass offset=0 for first page, then increment by limit for "Load More".
+ */
+export async function fetchAllUploads(
+  staffId: string,
+  limit = 20,
+  offset = 0
+): Promise<LogbookUpload[]> {
+  const { data, error } = await supabase
+    .from('logbook_uploads')
+    .select('*')
+    .eq('staff_id', staffId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error || !data) return [];
+  return data.map((row) => ({ ...row, is_synced: true }));
+}
+
+/**
+ * Fetch all individual entries for a specific upload (for owner tap-to-expand).
+ */
+export async function fetchUploadEntries(uploadId: string): Promise<import('../types').LogbookEntry[]> {
+  const { data, error } = await supabase
+    .from('logbook_entries')
+    .select('*')
+    .eq('upload_id', uploadId)
+    .order('created_at', { ascending: true });
+
+  if (error || !data) return [];
+  return data;
+}
+
 // ─── Staff Management ─────────────────────────────────────────────────────────
 
 export async function fetchStaffList(): Promise<UserProfile[]> {

@@ -6,6 +6,7 @@ export interface UserProfile {
   full_name: string;
   role: UserRole;
   device_id?: string;
+  is_active?: boolean;
   created_at: string;
 }
 

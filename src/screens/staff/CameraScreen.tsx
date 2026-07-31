@@ -10,6 +10,7 @@ import {
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../theme';
@@ -51,6 +52,23 @@ export default function CameraScreen() {
       Alert.alert('Capture Failed', 'Could not take photo. Please try again.');
     } finally {
       setCapturing(false);
+    }
+  };
+
+  const handleGallery = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Gallery access is needed to import logbook images.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 1,
+      allowsEditing: false,
+    });
+    if (!result.canceled && result.assets[0]?.uri) {
+      navigation.navigate('Review', { imageUri: result.assets[0].uri, parsedEntries: [] });
     }
   };
 
@@ -104,8 +122,10 @@ export default function CameraScreen() {
             💡 Tip: Ensure good lighting and hold the camera steady
           </Text>
           <View style={styles.controls}>
-            {/* Placeholder left */}
-            <View style={{ width: 56 }} />
+            {/* Gallery Picker */}
+            <TouchableOpacity style={styles.galleryBtn} onPress={handleGallery} activeOpacity={0.8}>
+              <Text style={styles.galleryIcon}>🖼️</Text>
+            </TouchableOpacity>
 
             {/* Shutter */}
             <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
@@ -119,7 +139,7 @@ export default function CameraScreen() {
               </TouchableOpacity>
             </Animated.View>
 
-            {/* Gallery / import placeholder */}
+            {/* Flip placeholder (reserve space symmetry) */}
             <View style={{ width: 56 }} />
           </View>
         </LinearGradient>
@@ -191,6 +211,17 @@ const styles = StyleSheet.create({
     borderRadius: 29,
     backgroundColor: Colors.textPrimary,
   },
+  galleryBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  galleryIcon: { fontSize: 24 },
   permissionContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
   permissionIcon: { fontSize: 64, marginBottom: Spacing.lg },
   permissionTitle: { fontSize: FontSize.xl, fontWeight: '700', color: Colors.textPrimary, marginBottom: Spacing.sm },
