@@ -168,16 +168,19 @@ cd android
 
 ---
 
-### Option C: EAS Production Build (Expo Application Services)
+### Option C: EAS Cloud Build (Recommended — No Local NDK Required!)
 
-If using EAS Cloud Build:
+Build standalone APKs or AABs on Expo's high-speed cloud runners (bypasses Windows C++ compiler issues):
 
 ```bash
-# Install EAS CLI
-npm install -g eas-cli
+# 1. Log in to your Expo account
+npx eas-cli login
 
-# Run production build
-eas build -p android --profile production
+# 2. Build Standalone Release APK (Direct Device Installation)
+npx eas-cli build -p android --profile preview
+
+# 3. Build Google Play Store App Bundle (.aab)
+npx eas-cli build -p android --profile production
 ```
 
 ---
