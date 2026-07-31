@@ -22,7 +22,7 @@ type ViewMode = 'today' | 'allTime';
 const PAGE_SIZE = 20;
 
 export default function StaffHistoryScreen() {
-  const { profile, signOut, switchRole } = useAuth();
+  const { profile } = useAuth();
   const [uploads, setUploads] = useState<LogbookUpload[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -142,11 +142,6 @@ export default function StaffHistoryScreen() {
               {viewMode === 'today' ? "Today's Uploads" : 'All Uploads'}
             </Text>
             <Text style={styles.headerSub}>Your processed logbooks</Text>
-          </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
-              <Text style={styles.signOutText}>Sign Out</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
