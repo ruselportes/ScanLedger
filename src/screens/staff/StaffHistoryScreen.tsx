@@ -144,9 +144,6 @@ export default function StaffHistoryScreen() {
             <Text style={styles.headerSub}>Your processed logbooks</Text>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.roleSwitchBtn} onPress={() => switchRole('owner')}>
-              <Text style={styles.roleSwitchText}>👑 Admin View</Text>
-            </TouchableOpacity>
             <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
               <Text style={styles.signOutText}>Sign Out</Text>
             </TouchableOpacity>
